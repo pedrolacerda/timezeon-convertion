@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, type CSSProperties } from 'react'
 import MenuBarPopover from './components/MenuBarPopover'
 import WorldClock from './components/WorldClock'
 import Converter from './components/Converter'
+import Settings from './components/Settings'
 import { FavoritesList } from './components/FavoritesList'
 import { useFavorites } from './hooks/useFavorites'
+import { useTheme } from './hooks/useTheme'
 
 type Tab = 'clock' | 'converter' | 'settings'
 
@@ -20,6 +22,7 @@ function MainApp() {
   const [activeTab, setActiveTab] = useState<Tab>('clock')
   const [showFavoritesModal, setShowFavoritesModal] = useState(false)
   const { favorites, addFavorite, removeFavorite, reorderFavorites } = useFavorites()
+  const themeProps = useTheme()
 
   // Listen for settings navigation from main process (triggered by popover)
   useEffect(() => {
@@ -30,10 +33,10 @@ function MainApp() {
   }, [])
 
   return (
-    <div className="flex h-screen flex-col bg-gray-950 text-white">
+    <div className="flex h-screen flex-col bg-white text-gray-900 dark:bg-gray-950 dark:text-white">
       {/* Draggable title bar area + tab bar */}
-      <div className="shrink-0 bg-gray-900" style={{ ...dragStyle, paddingTop: 28 }}>
-        <nav className="flex border-b border-gray-800">
+      <div className="shrink-0 bg-gray-100 dark:bg-gray-900" style={{ ...dragStyle, paddingTop: 28 }}>
+        <nav className="flex border-b border-gray-200 dark:border-gray-800">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -41,8 +44,8 @@ function MainApp() {
               style={noDragStyle}
               className={`relative flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium transition-colors
                 ${activeTab === tab.id
-                  ? 'text-white'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'text-gray-900 dark:text-white'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                 }`}
             >
               <span>{tab.icon}</span>
@@ -63,7 +66,7 @@ function MainApp() {
               <h2 className="text-lg font-semibold">World Clock</h2>
               <button
                 onClick={() => setShowFavoritesModal(true)}
-                className="rounded-lg bg-white/5 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-lg bg-black/5 px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-black/10 hover:text-gray-900 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
               >
                 Edit Favorites
               </button>
@@ -75,9 +78,7 @@ function MainApp() {
         {activeTab === 'converter' && <Converter />}
 
         {activeTab === 'settings' && (
-          <div className="flex items-center justify-center py-20 text-gray-500">
-            <p className="text-sm">Settings coming soon</p>
-          </div>
+          <Settings theme={themeProps} />
         )}
       </div>
 
@@ -120,12 +121,12 @@ function FavoritesModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
-      <div className="mx-4 w-full max-w-md rounded-2xl border border-gray-700/50 bg-gray-900 p-5 shadow-2xl">
+      <div className="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl dark:border-gray-700/50 dark:bg-gray-900">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">Edit Favorites</h3>
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+            className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
             aria-label="Close"
           >
             ✕

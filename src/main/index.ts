@@ -54,6 +54,7 @@ app.whenReady().then(() => {
   ipcMain.handle('get-settings', () => getSettings())
   ipcMain.handle('set-settings', (_event, settings) => {
     setSettings(settings)
+    nativeTheme.themeSource = settings.theme
     app.setLoginItemSettings({ openAtLogin: settings.launchAtLogin })
     updateGlobalShortcut()
   })
@@ -88,6 +89,7 @@ app.whenReady().then(() => {
   })
 
   const settings = getSettings()
+  nativeTheme.themeSource = settings.theme
   app.setLoginItemSettings({ openAtLogin: settings.launchAtLogin })
 
   createWindow()
