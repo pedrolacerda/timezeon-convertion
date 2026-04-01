@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { TimezoneSearch } from './TimezoneSearch'
 import { getTimezoneInfo, type TimezoneInfo } from '../lib/timezones'
+import { DragHandleIcon, XMarkIcon } from './Icons'
 
 interface FavoritesListProps {
   favorites: string[]
@@ -45,7 +46,7 @@ function FavoriteItem({
     >
       {/* Drag handle */}
       <span className="cursor-grab active:cursor-grabbing text-gray-600 group-hover:text-gray-400 transition-colors select-none text-sm leading-none">
-        ⋮⋮
+        <DragHandleIcon className="h-4 w-4" />
       </span>
 
       {/* Timezone info */}
@@ -61,7 +62,7 @@ function FavoriteItem({
         className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity text-lg leading-none px-1"
         aria-label={`Remove ${info.city}`}
       >
-        ×
+        <XMarkIcon className="h-4 w-4" />
       </button>
     </div>
   )

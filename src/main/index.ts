@@ -20,7 +20,7 @@ function createWindow(): void {
     minWidth: 380,
     minHeight: 400,
     resizable: true,
-    title: 'TimeZap ⚡',
+    title: 'TimeZap',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 15, y: 10 },
     webPreferences: {

@@ -6,13 +6,14 @@ import Settings from './components/Settings'
 import { FavoritesList } from './components/FavoritesList'
 import { useFavorites } from './hooks/useFavorites'
 import { useTheme } from './hooks/useTheme'
+import { GlobeIcon, ArrowsSwapIcon, GearIcon, XMarkIcon } from './components/Icons'
 
 type Tab = 'clock' | 'converter' | 'settings'
 
-const tabs: { id: Tab; icon: string; label: string }[] = [
-  { id: 'clock', icon: '🌍', label: 'World Clock' },
-  { id: 'converter', icon: '⇄', label: 'Converter' },
-  { id: 'settings', icon: '⚙', label: 'Settings' },
+const tabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
+  { id: 'clock', icon: <GlobeIcon />, label: 'World Clock' },
+  { id: 'converter', icon: <ArrowsSwapIcon />, label: 'Converter' },
+  { id: 'settings', icon: <GearIcon />, label: 'Settings' },
 ]
 
 const dragStyle: CSSProperties = { WebkitAppRegion: 'drag' } as CSSProperties
@@ -129,7 +130,7 @@ function FavoritesModal({
             className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
             aria-label="Close"
           >
-            ✕
+            <XMarkIcon className="h-4 w-4" />
           </button>
         </div>
         <FavoritesList

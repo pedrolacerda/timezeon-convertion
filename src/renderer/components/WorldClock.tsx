@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { useClock } from '../hooks/useClock'
 import { getTimezoneInfo, type TimezoneInfo } from '../lib/timezones'
 import { formatTime } from '../lib/convert'
+import { XMarkIcon } from './Icons'
 
 interface WorldClockProps {
   favorites: string[]
@@ -76,7 +77,7 @@ function ClockCard({
             className="opacity-0 group-hover:opacity-100 ml-2 text-gray-500 hover:text-red-400 transition-opacity text-sm"
             aria-label={`Remove ${data.info.city}`}
           >
-            ×
+            <XMarkIcon className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
@@ -91,7 +92,7 @@ function ClockCard({
           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity text-lg leading-none"
           aria-label={`Remove ${data.info.city}`}
         >
-          ×
+          <XMarkIcon className="h-4 w-4" />
         </button>
       )}
 

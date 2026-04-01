@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { convertTime, formatTime } from '../lib/convert'
 import { getAllTimezones, type TimezoneInfo } from '../lib/timezones'
 import { useClock } from '../hooks/useClock'
+import { ArrowsSwapIcon, ClipboardIcon, CheckIcon, WarningIcon } from './Icons'
 
 interface ConverterProps {
   compact?: boolean
@@ -145,7 +146,7 @@ export default function Converter({ compact = false }: ConverterProps) {
           style={{ transform: `rotate(${swapRotation}deg)` }}
           aria-label="Swap timezones"
         >
-          ⇄
+          <ArrowsSwapIcon />
         </button>
 
         {/* Target */}
@@ -171,7 +172,7 @@ export default function Converter({ compact = false }: ConverterProps) {
           className="mx-auto text-xs text-gray-400 hover:text-white transition-colors"
           aria-label="Copy result"
         >
-          {copied ? '✓ Copied!' : '📋 Copy'}
+          {copied ? <><CheckIcon className="inline h-3.5 w-3.5" /> Copied!</> : <><ClipboardIcon className="inline h-3.5 w-3.5" /> Copy</>}
         </button>
       </div>
     )
@@ -242,7 +243,7 @@ export default function Converter({ compact = false }: ConverterProps) {
           style={{ transform: `rotate(${swapRotation}deg)` }}
           aria-label="Swap timezones"
         >
-          ⇄
+          <ArrowsSwapIcon />
         </button>
       </div>
 
@@ -269,7 +270,7 @@ export default function Converter({ compact = false }: ConverterProps) {
             {result.offsetDiff} from source
           </p>
           {result.isDSTTransition && (
-            <p className="mt-1 text-xs text-amber-400">⚠ DST difference between zones</p>
+            <p className="mt-1 text-xs text-amber-400"><WarningIcon className="inline h-3.5 w-3.5" /> DST difference between zones</p>
           )}
         </div>
       </div>
@@ -285,12 +286,12 @@ export default function Converter({ compact = false }: ConverterProps) {
         >
           {copied ? (
             <>
-              <span className="text-green-400">✓</span>
+              <CheckIcon className="h-4 w-4 text-green-400" />
               <span className="text-green-400">Copied!</span>
             </>
           ) : (
             <>
-              <span>📋</span>
+              <ClipboardIcon className="h-4 w-4" />
               <span>Copy Result</span>
             </>
           )}

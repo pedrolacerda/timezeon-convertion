@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { ComputerIcon, SunIcon, MoonIcon, BoltIcon } from './Icons'
 
 interface SettingsProps {
   theme: {
@@ -8,10 +9,10 @@ interface SettingsProps {
   }
 }
 
-const themeOptions: { value: 'system' | 'light' | 'dark'; label: string; icon: string }[] = [
-  { value: 'system', label: 'System', icon: '💻' },
-  { value: 'light', label: 'Light', icon: '☀️' },
-  { value: 'dark', label: 'Dark', icon: '🌙' },
+const themeOptions: { value: 'system' | 'light' | 'dark'; label: string; icon: React.ReactNode }[] = [
+  { value: 'system', label: 'System', icon: <ComputerIcon /> },
+  { value: 'light', label: 'Light', icon: <SunIcon /> },
+  { value: 'dark', label: 'Dark', icon: <MoonIcon /> },
 ]
 
 function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -228,7 +229,7 @@ export default function Settings({ theme }: SettingsProps) {
       {/* About */}
       <SectionCard title="About">
         <div className="text-center">
-          <p className="text-2xl">⚡</p>
+          <BoltIcon className="h-8 w-8 mx-auto text-blue-500" />
           <h4 className="mt-1 text-lg font-bold text-gray-900 dark:text-white">TimeZap</h4>
           <p className="text-xs text-gray-400 dark:text-gray-500">Version 1.0.0</p>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">

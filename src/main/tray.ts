@@ -69,7 +69,7 @@ export function createTray(): void {
   // Use an empty image and set title as the tray indicator
   const icon = nativeImage.createEmpty()
   tray = new Tray(icon)
-  tray.setTitle('⚡')
+  tray.setTitle('')
   tray.setToolTip('TimeZap — Timezone Converter')
 
   tray.on('click', () => {
