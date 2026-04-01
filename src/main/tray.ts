@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, nativeImage } from 'electron'
+import { app, BrowserWindow, Menu, Tray, nativeImage } from 'electron'
 import { join } from 'path'
 
 let tray: Tray | null = null
@@ -6,8 +6,8 @@ let popoverWindow: BrowserWindow | null = null
 
 function createPopoverWindow(): BrowserWindow {
   const win = new BrowserWindow({
-    width: 350,
-    height: 450,
+    width: 320,
+    height: 380,
     show: false,
     frame: false,
     resizable: false,
@@ -66,14 +66,28 @@ function togglePopover(): void {
 }
 
 export function createTray(): void {
-  // Use an empty image and set title as the tray indicator
-  const icon = nativeImage.createEmpty()
+  const iconPath = app.isPackaged
+    ? join(process.resourcesPath, 'icon.png')
+    : join(__dirname, '../../resources/icon.png')
+
+  const icon = nativeImage.createFromPath(iconPath).resize({ width: 22, height: 22 })
+  icon.setTemplateImage(true)
+
   tray = new Tray(icon)
-  tray.setTitle('')
   tray.setToolTip('TimeZap — Timezone Converter')
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Open TimeZap', click: () => togglePopover() },
+    { type: 'separator' },
+    { label: 'Quit', click: () => app.quit() }
+  ])
 
   tray.on('click', () => {
     togglePopover()
+  })
+
+  tray.on('right-click', () => {
+    tray!.popUpContextMenu(contextMenu)
   })
 }
 

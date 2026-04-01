@@ -72,7 +72,7 @@ function MainApp() {
                 Edit Favorites
               </button>
             </div>
-            <WorldClock favorites={favorites} onRemoveFavorite={removeFavorite} />
+            <WorldClock favorites={favorites} onRemoveFavorite={removeFavorite} onReorder={reorderFavorites} />
           </div>
         )}
 

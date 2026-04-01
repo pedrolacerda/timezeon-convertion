@@ -37,7 +37,7 @@ function TimezoneSelect({
       onChange={(e) => onChange(e.target.value)}
       className={`w-full rounded-lg border border-white/10 bg-white/5 px-3 text-white
         focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors
-        ${compact ? 'py-1.5 text-sm' : 'py-2 text-base'}`}
+        ${compact ? 'h-[34px] text-sm' : 'py-2 text-base'}`}
     >
       {[...grouped.entries()].map(([region, tzs]) => (
         <optgroup key={region} label={region} className="bg-gray-800 text-white">
@@ -63,7 +63,6 @@ export default function Converter({ compact = false }: ConverterProps) {
 
   const [sourceTz, setSourceTz] = useState(localTz)
   const [targetTz, setTargetTz] = useState(() => getDefaultTarget(localTz))
-  const [isNowMode, setIsNowMode] = useState(true)
   const [customTime, setCustomTime] = useState('')
   const [copied, setCopied] = useState(false)
   const [swapRotation, setSwapRotation] = useState(0)
@@ -81,20 +80,18 @@ export default function Converter({ compact = false }: ConverterProps) {
 
   // Build the source DateTime for conversion
   const sourceDateTime = useMemo(() => {
-    if (isNowMode) return undefined // convertTime uses now by default
     if (!customTime) return undefined
-    // customTime is in HH:mm format from the time input
     const [hours, minutes] = customTime.split(':').map(Number)
     return DateTime.now()
       .setZone(sourceTz)
       .set({ hour: hours, minute: minutes, second: 0, millisecond: 0 })
-  }, [isNowMode, customTime, sourceTz])
+  }, [customTime, sourceTz])
 
   const result = useMemo(
     () => convertTime(sourceTz, targetTz, sourceDateTime),
-    // Re-run every second in "now" mode by depending on liveNow
+    // Re-run every second when no custom time is set
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sourceTz, targetTz, sourceDateTime, isNowMode ? liveNow : null]
+    [sourceTz, targetTz, sourceDateTime, !customTime ? liveNow : null]
   )
 
   const handleSwap = useCallback(() => {
@@ -110,70 +107,81 @@ export default function Converter({ compact = false }: ConverterProps) {
     setTimeout(() => setCopied(false), 1500)
   }, [result])
 
-  const handleTimeMode = useCallback(
-    (nowMode: boolean) => {
-      setIsNowMode(nowMode)
-      if (!nowMode && !customTime) {
-        setCustomTime(liveNow.toFormat('HH:mm'))
-      }
-    },
-    [customTime, liveNow]
-  )
-
   if (compact) {
     return (
-      <div className="flex flex-col gap-2 p-2 w-72">
-        {/* Source */}
-        <TimezoneSelect
-          value={sourceTz}
-          onChange={setSourceTz}
-          timezones={allTimezones}
-          compact
-        />
-
-        <div className="text-center text-sm text-gray-400 font-mono">
-          {isNowMode
-            ? formatTime(liveNow, 'h:mm:ss a')
-            : customTime}
+      <div className="flex flex-col gap-2 p-3 bg-white/5 rounded-xl text-white">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <TimezoneSelect
+              value={sourceTz}
+              onChange={setSourceTz}
+              timezones={allTimezones}
+              compact
+            />
+          </div>
+          <div className="w-[110px] shrink-0">
+            <input
+              type="time"
+              value={customTime}
+              onChange={(e) => setCustomTime(e.target.value)}
+              className="w-full h-[34px] rounded-lg border border-white/10 bg-white/5 px-2 font-mono
+                text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
-        {/* Swap */}
-        <button
-          onClick={handleSwap}
-          className="mx-auto flex h-7 w-7 items-center justify-center rounded-full
-            bg-white/10 text-sm text-gray-300 transition-transform duration-300
-            hover:bg-white/20"
-          style={{ transform: `rotate(${swapRotation}deg)` }}
-          aria-label="Swap timezones"
-        >
-          <ArrowsSwapIcon />
-        </button>
-
-        {/* Target */}
-        <TimezoneSelect
-          value={targetTz}
-          onChange={setTargetTz}
-          timezones={allTimezones}
-          compact
-        />
-
-        <div className="text-center">
-          <p className="text-xl font-mono font-bold text-white transition-all duration-300">
-            {formatTime(result.targetTime, 'h:mm a')}
-          </p>
-          <p className="text-xs text-gray-400">
-            {formatTime(result.targetTime, 'MMM d, yyyy')}
-          </p>
-          <p className="text-xs text-blue-400">{result.offsetDiff}</p>
+        <div className="flex items-center justify-between -my-1">
+          <div className="flex-1 pl-2">
+            {!customTime && (
+              <span className="text-[10px] text-gray-500">
+                Now: {formatTime(liveNow, 'h:mm a')}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handleSwap}
+            className="flex h-7 w-7 items-center justify-center rounded-full
+              bg-white/10 text-xs text-gray-300 transition-transform duration-300
+              hover:bg-white/20 shrink-0 mx-[5px]"
+            style={{ transform: `rotate(${swapRotation}deg)` }}
+            aria-label="Swap timezones"
+          >
+            <ArrowsSwapIcon />
+          </button>
+          <div className="w-[110px] shrink-0" />
         </div>
 
-        <button
-          onClick={handleCopy}
-          className="mx-auto text-xs text-gray-400 hover:text-white transition-colors"
-          aria-label="Copy result"
-        >
-          {copied ? <><CheckIcon className="inline h-3.5 w-3.5" /> Copied!</> : <><ClipboardIcon className="inline h-3.5 w-3.5" /> Copy</>}
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0 self-stretch flex items-start">
+            <TimezoneSelect
+              value={targetTz}
+              onChange={setTargetTz}
+              timezones={allTimezones}
+              compact
+            />
+          </div>
+          <div 
+            className="w-[110px] min-h-[50px] shrink-0 flex flex-col justify-center items-end cursor-pointer group relative bg-white/5 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/10 border border-white/10 hover:border-blue-500/30"
+            onClick={handleCopy}
+            title="Click to copy result"
+          >
+             <p className="text-sm font-mono font-bold tracking-tight text-white transition-all group-hover:text-blue-400">
+               {formatTime(result.targetTime, 'h:mm a')}
+             </p>
+             <div className="flex flex-col items-end gap-0 mt-0.5 text-[10px] leading-tight text-gray-400 text-right">
+               <span>{formatTime(result.targetTime, 'MMM d, yyyy')}</span>
+               <span className="text-blue-400/80">{result.offsetDiff.replace('hours', 'h').replace('hour', 'h')}</span>
+             </div>
+
+             {copied && (
+                <div className="absolute inset-0 bg-gray-900/95 flex items-center justify-center rounded-lg border border-green-500/30 backdrop-blur-sm z-10">
+                  <span className="text-xs text-green-400 font-medium flex items-center gap-1">
+                    <CheckIcon className="h-3 w-3" />Copied!
+                  </span>
+                </div>
+             )}
+          </div>
+        </div>
       </div>
     )
   }
@@ -192,43 +200,19 @@ export default function Converter({ compact = false }: ConverterProps) {
           timezones={allTimezones}
         />
 
-        {/* Time mode toggle */}
-        <div className="mt-3 flex items-center gap-2">
-          <div className="inline-flex rounded-lg bg-white/5 p-0.5">
-            <button
-              onClick={() => handleTimeMode(true)}
-              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors
-                ${isNowMode
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white'
-                }`}
-            >
-              Now
-            </button>
-            <button
-              onClick={() => handleTimeMode(false)}
-              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors
-                ${!isNowMode
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white'
-                }`}
-            >
-              Custom
-            </button>
-          </div>
-
-          {isNowMode ? (
-            <span className="font-mono text-lg text-white transition-all duration-300">
-              {formatTime(liveNow, 'h:mm:ss a')}
+        {/* Time input */}
+        <div className="mt-3 flex flex-col gap-1">
+          <input
+            type="time"
+            value={customTime}
+            onChange={(e) => setCustomTime(e.target.value)}
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono
+              text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {!customTime && (
+            <span className="text-xs text-gray-500 pl-1">
+              Now: {formatTime(liveNow, 'h:mm:ss a')}
             </span>
-          ) : (
-            <input
-              type="time"
-              value={customTime}
-              onChange={(e) => setCustomTime(e.target.value)}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono
-                text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
           )}
         </div>
       </div>

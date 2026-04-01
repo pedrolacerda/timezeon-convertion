@@ -19,6 +19,14 @@ export default function MenuBarPopover() {
     [favorites],
   )
 
+  const handleReorderFavorites = useCallback(
+    (newOrder: string[]) => {
+      setFavorites(newOrder)
+      window.api.setFavorites(newOrder).catch(() => {})
+    },
+    [],
+  )
+
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden rounded-xl bg-gray-900 text-white">
       {/* Popover arrow notch */}
@@ -46,20 +54,27 @@ export default function MenuBarPopover() {
 
       <div className="mx-3 border-t border-white/5" />
 
-      {/* Mini World Clock — scrollable top section */}
-      <section className="min-h-0 flex-[3] overflow-y-auto scroll-smooth px-3 py-2">
-        <WorldClock
-          favorites={favorites}
-          compact
-          onRemoveFavorite={handleRemoveFavorite}
-        />
+      {/* Quick Converter — top section */}
+      <section
+        className="flex shrink-0 flex-col overflow-y-auto px-3 py-2"
+        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      >
+        <Converter compact />
       </section>
 
       <div className="mx-3 border-t border-white/5" />
 
-      {/* Quick Converter — bottom section */}
-      <section className="flex shrink-0 flex-[2] flex-col overflow-y-auto px-1 py-1">
-        <Converter compact />
+      {/* Mini World Clock — scrollable bottom section */}
+      <section
+        className="min-h-0 flex-1 overflow-y-auto scroll-smooth px-3 py-2"
+        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      >
+        <WorldClock
+          favorites={favorites}
+          compact
+          onRemoveFavorite={handleRemoveFavorite}
+          onReorder={handleReorderFavorites}
+        />
       </section>
 
       {/* Footer */}

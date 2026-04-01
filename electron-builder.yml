@@ -6,7 +6,6 @@ directories:
   output: dist
 files:
   - out/**/*
-  - "!node_modules/**/*"
 mac:
   category: public.app-category.utilities
   target:

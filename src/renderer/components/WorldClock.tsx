@@ -1,14 +1,15 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { DateTime } from 'luxon'
 import { useClock } from '../hooks/useClock'
 import { getTimezoneInfo, type TimezoneInfo } from '../lib/timezones'
 import { formatTime } from '../lib/convert'
-import { XMarkIcon } from './Icons'
+import { XMarkIcon, DragHandleIcon } from './Icons'
 
 interface WorldClockProps {
   favorites: string[]
   compact?: boolean
   onRemoveFavorite?: (tzId: string) => void
+  onReorder?: (newOrder: string[]) => void
 }
 
 interface ClockCardData {
@@ -54,15 +55,43 @@ function ClockCard({
   data,
   compact,
   onRemove,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  isDragTarget,
 }: {
   data: ClockCardData
   compact?: boolean
   onRemove?: () => void
+  onDragStart?: () => void
+  onDragOver?: (e: React.DragEvent) => void
+  onDrop?: (e: React.DragEvent) => void
+  onDragEnd?: () => void
+  isDragTarget?: boolean
 }) {
+  const draggable = !!onDragStart
+
   if (compact) {
     return (
-      <div className="group flex items-center justify-between bg-gray-800/50 dark:bg-gray-800 rounded-xl px-3 py-2 border border-gray-700/50 hover:border-gray-600 transition-colors">
-        <div className="flex items-center gap-3 min-w-0">
+      <div
+        draggable={draggable}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+        onDragEnd={onDragEnd}
+        className={`group flex items-center justify-between rounded-xl px-3 py-2 border transition-colors ${
+          isDragTarget
+            ? 'bg-blue-600/20 border-blue-500/70'
+            : 'bg-gray-800/50 dark:bg-gray-800 border-gray-700/50 hover:border-gray-600'
+        }`}
+      >
+        {draggable && (
+          <span className="cursor-grab active:cursor-grabbing text-gray-600 group-hover:text-gray-400 transition-colors select-none mr-2 shrink-0">
+            <DragHandleIcon className="h-3.5 w-3.5" />
+          </span>
+        )}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <span className="text-xl font-mono font-bold text-white whitespace-nowrap">
             {data.timeStr}
           </span>
@@ -85,7 +114,23 @@ function ClockCard({
   }
 
   return (
-    <div className="group relative bg-gray-800/50 dark:bg-gray-800 rounded-xl p-4 border border-gray-700/50 hover:border-gray-500 transition-colors">
+    <div
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={`group relative rounded-xl p-4 border transition-colors ${
+        isDragTarget
+          ? 'bg-blue-600/20 border-blue-500/70'
+          : 'bg-gray-800/50 dark:bg-gray-800 border-gray-700/50 hover:border-gray-500'
+      }`}
+    >
+      {draggable && (
+        <span className="absolute top-2 left-2 cursor-grab active:cursor-grabbing text-gray-600 group-hover:text-gray-400 transition-colors select-none opacity-0 group-hover:opacity-100">
+          <DragHandleIcon className="h-4 w-4" />
+        </span>
+      )}
       {onRemove && (
         <button
           onClick={onRemove}
@@ -118,13 +163,46 @@ function ClockCard({
   )
 }
 
-export default function WorldClock({ favorites, compact, onRemoveFavorite }: WorldClockProps) {
+export default function WorldClock({ favorites, compact, onRemoveFavorite, onReorder }: WorldClockProps) {
   const now = useClock()
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   const cards = useMemo(
     () => favorites.map((tzId) => buildCardData(tzId, now)),
     [favorites, now],
   )
+
+  const handleDragStart = useCallback((index: number) => {
+    setDragIndex(index)
+  }, [])
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, index: number) => {
+      e.preventDefault()
+      if (index !== dragIndex) setDragOverIndex(index)
+    },
+    [dragIndex],
+  )
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, dropIndex: number) => {
+      e.preventDefault()
+      if (dragIndex === null || dragIndex === dropIndex || !onReorder) return
+      const newOrder = [...favorites]
+      const [moved] = newOrder.splice(dragIndex, 1)
+      newOrder.splice(dropIndex, 0, moved)
+      onReorder(newOrder)
+      setDragIndex(null)
+      setDragOverIndex(null)
+    },
+    [dragIndex, favorites, onReorder],
+  )
+
+  const handleDragEnd = useCallback(() => {
+    setDragIndex(null)
+    setDragOverIndex(null)
+  }, [])
 
   if (favorites.length === 0) {
     return (
@@ -137,12 +215,17 @@ export default function WorldClock({ favorites, compact, onRemoveFavorite }: Wor
   if (compact) {
     return (
       <div className="flex flex-col gap-2">
-        {cards.map((data) => (
+        {cards.map((data, index) => (
           <ClockCard
             key={data.info.id}
             data={data}
             compact
             onRemove={onRemoveFavorite ? () => onRemoveFavorite(data.info.id) : undefined}
+            onDragStart={onReorder ? () => handleDragStart(index) : undefined}
+            onDragOver={onReorder ? (e) => handleDragOver(e, index) : undefined}
+            onDrop={onReorder ? (e) => handleDrop(e, index) : undefined}
+            onDragEnd={onReorder ? handleDragEnd : undefined}
+            isDragTarget={dragOverIndex === index && dragIndex !== index}
           />
         ))}
       </div>
@@ -151,11 +234,16 @@ export default function WorldClock({ favorites, compact, onRemoveFavorite }: Wor
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {cards.map((data) => (
+      {cards.map((data, index) => (
         <ClockCard
           key={data.info.id}
           data={data}
           onRemove={onRemoveFavorite ? () => onRemoveFavorite(data.info.id) : undefined}
+          onDragStart={onReorder ? () => handleDragStart(index) : undefined}
+          onDragOver={onReorder ? (e) => handleDragOver(e, index) : undefined}
+          onDrop={onReorder ? (e) => handleDrop(e, index) : undefined}
+          onDragEnd={onReorder ? handleDragEnd : undefined}
+          isDragTarget={dragOverIndex === index && dragIndex !== index}
         />
       ))}
     </div>
