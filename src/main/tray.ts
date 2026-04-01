@@ -67,10 +67,10 @@ function togglePopover(): void {
 
 export function createTray(): void {
   const iconPath = app.isPackaged
-    ? join(process.resourcesPath, 'icon.png')
-    : join(__dirname, '../../resources/icon.png')
+    ? join(process.resourcesPath, 'tray-icon.png')
+    : join(__dirname, '../../resources/tray-icon.png')
 
-  const icon = nativeImage.createFromPath(iconPath).resize({ width: 22, height: 22 })
+  const icon = nativeImage.createFromPath(iconPath)
   icon.setTemplateImage(true)
 
   tray = new Tray(icon)

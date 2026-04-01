@@ -72,11 +72,21 @@ app.whenReady().then(() => {
   })
 
   ipcMain.on('open-settings', () => {
-    const win = getMainWindow()
+    let win = getMainWindow()
     if (win) {
       win.show()
       win.focus()
       win.webContents.send('switch-to-settings')
+    } else {
+      createWindow()
+      win = getMainWindow()
+      if (win) {
+        win.once('ready-to-show', () => {
+          win!.show()
+          win!.focus()
+          win!.webContents.send('switch-to-settings')
+        })
+      }
     }
   })
 
