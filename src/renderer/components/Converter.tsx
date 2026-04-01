@@ -31,6 +31,11 @@ function TimezoneSelect({
     return map
   }, [timezones])
 
+  // In compact mode show a shorter label to avoid truncation
+  const getLabel = (tz: TimezoneInfo) => compact
+    ? `${tz.city} (${tz.abbreviation})`
+    : tz.label
+
   return (
     <select
       value={value}
@@ -43,7 +48,7 @@ function TimezoneSelect({
         <optgroup key={region} label={region} className="bg-gray-800 text-white">
           {tzs.map((tz) => (
             <option key={tz.id} value={tz.id} className="bg-gray-800">
-              {tz.label}
+              {getLabel(tz)}
             </option>
           ))}
         </optgroup>
@@ -110,7 +115,8 @@ export default function Converter({ compact = false }: ConverterProps) {
   if (compact) {
     return (
       <div className="flex flex-col gap-2 p-3 bg-white/5 rounded-xl text-white">
-        <div className="flex items-center gap-3">
+        {/* Source row */}
+        <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0">
             <TimezoneSelect
               value={sourceTz}
@@ -119,19 +125,20 @@ export default function Converter({ compact = false }: ConverterProps) {
               compact
             />
           </div>
-          <div className="w-[110px] shrink-0">
+          <div className="shrink-0">
             <input
               type="time"
               value={customTime}
               onChange={(e) => setCustomTime(e.target.value)}
-              className="w-full h-[34px] rounded-lg border border-white/10 bg-white/5 px-2 font-mono
+              className="w-[90px] h-[34px] rounded-lg border border-white/10 bg-white/5 px-2 font-mono
                 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between -my-1">
-          <div className="flex-1 pl-2">
+        {/* Swap row */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 pl-1">
             {!customTime && (
               <span className="text-[10px] text-gray-500">
                 Now: {formatTime(liveNow, 'h:mm a')}
@@ -142,45 +149,49 @@ export default function Converter({ compact = false }: ConverterProps) {
             onClick={handleSwap}
             className="flex h-7 w-7 items-center justify-center rounded-full
               bg-white/10 text-xs text-gray-300 transition-transform duration-300
-              hover:bg-white/20 shrink-0 mx-[5px]"
+              hover:bg-white/20 shrink-0 mr-[31px]"
             style={{ transform: `rotate(${swapRotation}deg)` }}
             aria-label="Swap timezones"
           >
             <ArrowsSwapIcon />
           </button>
-          <div className="w-[110px] shrink-0" />
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex-1 min-w-0 self-stretch flex items-start">
-            <TimezoneSelect
-              value={targetTz}
-              onChange={setTargetTz}
-              timezones={allTimezones}
-              compact
-            />
-          </div>
-          <div 
-            className="w-[110px] min-h-[50px] shrink-0 flex flex-col justify-center items-end cursor-pointer group relative bg-white/5 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/10 border border-white/10 hover:border-blue-500/30"
-            onClick={handleCopy}
-            title="Click to copy result"
-          >
-             <p className="text-sm font-mono font-bold tracking-tight text-white transition-all group-hover:text-blue-400">
-               {formatTime(result.targetTime, 'h:mm a')}
-             </p>
-             <div className="flex flex-col items-end gap-0 mt-0.5 text-[10px] leading-tight text-gray-400 text-right">
-               <span>{formatTime(result.targetTime, 'MMM d, yyyy')}</span>
-               <span className="text-blue-400/80">{result.offsetDiff.replace('hours', 'h').replace('hour', 'h')}</span>
-             </div>
+        {/* Target row */}
+        <TimezoneSelect
+          value={targetTz}
+          onChange={setTargetTz}
+          timezones={allTimezones}
+          compact
+        />
 
-             {copied && (
-                <div className="absolute inset-0 bg-gray-900/95 flex items-center justify-center rounded-lg border border-green-500/30 backdrop-blur-sm z-10">
-                  <span className="text-xs text-green-400 font-medium flex items-center gap-1">
-                    <CheckIcon className="h-3 w-3" />Copied!
-                  </span>
-                </div>
-             )}
+        {/* Result tile — full width */}
+        <div
+          className="flex items-center justify-between cursor-pointer group relative
+            bg-gray-800/60 hover:bg-gray-800 border border-white/10 hover:border-blue-500/30
+            rounded-lg px-3 py-2 transition-colors"
+          onClick={handleCopy}
+          title="Click to copy result"
+        >
+          <div className="flex flex-col gap-0">
+            <span className="text-[10px] text-gray-500 leading-tight">
+              {formatTime(result.targetTime, 'EEE, MMM d, yyyy')}
+            </span>
+            <span className="text-[10px] text-blue-400/80 leading-tight">
+              {result.offsetDiff}
+            </span>
           </div>
+          <p className="text-xl font-mono font-bold text-white group-hover:text-blue-400 transition-colors tabular-nums">
+            {formatTime(result.targetTime, 'h:mm a')}
+          </p>
+
+          {copied && (
+            <div className="absolute inset-0 bg-gray-900/95 flex items-center justify-center rounded-lg border border-green-500/30 backdrop-blur-sm z-10">
+              <span className="text-xs text-green-400 font-medium flex items-center gap-1">
+                <CheckIcon className="h-3 w-3" /> Copied!
+              </span>
+            </div>
+          )}
         </div>
       </div>
     )
