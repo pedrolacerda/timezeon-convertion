@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "TimeZap — a timezone converter with main window and menu bar popover",
   "main": "./out/main/index.js",
+  "author": "Pedro Lacerda",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
