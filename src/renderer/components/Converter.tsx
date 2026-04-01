@@ -115,55 +115,51 @@ export default function Converter({ compact = false }: ConverterProps) {
   if (compact) {
     return (
       <div className="flex flex-col gap-2 p-3 bg-white/5 rounded-xl text-white">
-        {/* Source row */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 min-w-0">
+        {/* Two-column layout: selects left, time input + swap right */}
+        <div className="flex gap-2">
+          {/* Left: both timezone selects stacked */}
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
             <TimezoneSelect
               value={sourceTz}
               onChange={setSourceTz}
               timezones={allTimezones}
               compact
             />
+            <TimezoneSelect
+              value={targetTz}
+              onChange={setTargetTz}
+              timezones={allTimezones}
+              compact
+            />
           </div>
-          <div className="shrink-0">
+
+          {/* Right: time input on top, swap button below */}
+          <div className="flex flex-col items-center gap-1 shrink-0">
             <input
               type="time"
               value={customTime}
               onChange={(e) => setCustomTime(e.target.value)}
-              className="w-[90px] h-[34px] rounded-lg border border-white/10 bg-white/5 px-2 font-mono
+              className="w-[80px] h-[34px] rounded-lg border border-white/10 bg-white/5 px-2 font-mono
                 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
+            <button
+              onClick={handleSwap}
+              className="flex h-[34px] w-[80px] items-center justify-center rounded-lg
+                bg-white/10 text-[10px] text-gray-300 hover:bg-white/20 transition-colors"
+              style={{ transform: `rotate(${swapRotation}deg)`, transition: 'transform 300ms ease, background-color 150ms ease' }}
+              aria-label="Swap timezones"
+            >
+              <ArrowsSwapIcon />
+            </button>
           </div>
         </div>
 
-        {/* Swap row */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 pl-1">
-            {!customTime && (
-              <span className="text-[10px] text-gray-500">
-                Now: {formatTime(liveNow, 'h:mm a')}
-              </span>
-            )}
-          </div>
-          <button
-            onClick={handleSwap}
-            className="flex h-7 w-7 items-center justify-center rounded-full
-              bg-white/10 text-xs text-gray-300 transition-transform duration-300
-              hover:bg-white/20 shrink-0 mr-[31px]"
-            style={{ transform: `rotate(${swapRotation}deg)` }}
-            aria-label="Swap timezones"
-          >
-            <ArrowsSwapIcon />
-          </button>
-        </div>
-
-        {/* Target row */}
-        <TimezoneSelect
-          value={targetTz}
-          onChange={setTargetTz}
-          timezones={allTimezones}
-          compact
-        />
+        {/* Live clock hint */}
+        {!customTime && (
+          <span className="text-[10px] text-gray-500 pl-1">
+            Now: {formatTime(liveNow, 'h:mm a')}
+          </span>
+        )}
 
         {/* Result tile — full width */}
         <div
