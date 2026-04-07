@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { getAllTimezones, TimezoneInfo } from '../lib/timezones'
+import { getCanonicalTimezones, STANDARD_ABBREVIATION_MAP, TimezoneInfo } from '../lib/timezones'
 
 interface UseTimezonesResult {
   allTimezones: TimezoneInfo[]
@@ -24,14 +24,17 @@ function scoreMatch(tz: TimezoneInfo, query: string): number {
   if (city.startsWith(q)) return 1
   // City contains query
   if (city.includes(q)) return 2
-  // Abbreviation match (case-insensitive)
-  if (normalise(tz.abbreviation).includes(q)) return 3
+  // Standard abbreviation match — e.g. "PST", "CET", "EST", "BST"
+  const upperQ = query.trim().toUpperCase()
+  if (STANDARD_ABBREVIATION_MAP[upperQ] === tz.id) return 3
+  // Abbreviation match (current-season abbreviation from Luxon)
+  if (normalise(tz.abbreviation).includes(q)) return 4
   // UTC offset match — e.g. "+5", "utc-3", "-5:30"
-  if (normalise(tz.utcOffsetStr).includes(q) || tz.utcOffsetStr.replace('UTC', '').includes(query)) return 4
+  if (normalise(tz.utcOffsetStr).includes(q) || tz.utcOffsetStr.replace('UTC', '').includes(query)) return 5
   // IANA ID match — e.g. "America/New_York"
-  if (normalise(tz.id).includes(q)) return 5
+  if (normalise(tz.id).includes(q)) return 6
   // Region match — e.g. "Europe"
-  if (normalise(tz.region).includes(q)) return 6
+  if (normalise(tz.region).includes(q)) return 7
 
   return -1 // no match
 }
@@ -39,7 +42,7 @@ function scoreMatch(tz: TimezoneInfo, query: string): number {
 export function useTimezones(): UseTimezonesResult {
   const [searchQuery, setSearchQuery] = useState('')
 
-  const allTimezones = useMemo(() => getAllTimezones(), [])
+  const allTimezones = useMemo(() => getCanonicalTimezones(), [])
 
   const filteredTimezones = useMemo(() => {
     const q = searchQuery.trim()

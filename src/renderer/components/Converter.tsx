@@ -1,60 +1,12 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { DateTime } from 'luxon'
 import { convertTime, formatTime } from '../lib/convert'
-import { getAllTimezones, type TimezoneInfo } from '../lib/timezones'
 import { useClock } from '../hooks/useClock'
 import { ArrowsSwapIcon, ClipboardIcon, CheckIcon, WarningIcon } from './Icons'
+import { TimezoneSearch } from './TimezoneSearch'
 
 interface ConverterProps {
   compact?: boolean
-}
-
-// Inline timezone select as fallback (swap for TimezoneSearch later)
-function TimezoneSelect({
-  value,
-  onChange,
-  timezones,
-  compact,
-}: {
-  value: string
-  onChange: (tzId: string) => void
-  timezones: TimezoneInfo[]
-  compact?: boolean
-}) {
-  const grouped = useMemo(() => {
-    const map = new Map<string, TimezoneInfo[]>()
-    for (const tz of timezones) {
-      const list = map.get(tz.region)
-      if (list) list.push(tz)
-      else map.set(tz.region, [tz])
-    }
-    return map
-  }, [timezones])
-
-  // In compact mode show a shorter label to avoid truncation
-  const getLabel = (tz: TimezoneInfo) => compact
-    ? `${tz.city} (${tz.abbreviation})`
-    : tz.label
-
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`w-full rounded-lg border border-white/10 bg-white/5 px-3 text-white
-        focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors
-        ${compact ? 'h-[34px] text-sm' : 'py-2 text-base'}`}
-    >
-      {[...grouped.entries()].map(([region, tzs]) => (
-        <optgroup key={region} label={region} className="bg-gray-800 text-white">
-          {tzs.map((tz) => (
-            <option key={tz.id} value={tz.id} className="bg-gray-800">
-              {getLabel(tz)}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </select>
-  )
 }
 
 function getDefaultTarget(localTz: string): string {
@@ -64,7 +16,6 @@ function getDefaultTarget(localTz: string): string {
 
 export default function Converter({ compact = false }: ConverterProps) {
   const localTz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, [])
-  const allTimezones = useMemo(() => getAllTimezones(), [])
 
   const [sourceTz, setSourceTz] = useState(localTz)
   const [targetTz, setTargetTz] = useState(() => getDefaultTarget(localTz))
@@ -117,18 +68,18 @@ export default function Converter({ compact = false }: ConverterProps) {
       <div className="flex flex-col gap-2 p-3 bg-white/5 rounded-xl text-white">
         {/* Two-column layout: selects left, time input + swap right */}
         <div className="flex gap-2">
-          {/* Left: both timezone selects stacked */}
+          {/* Left: both timezone autocompletes stacked */}
           <div className="flex-1 min-w-0 flex flex-col gap-1">
-            <TimezoneSelect
+            <TimezoneSearch
               value={sourceTz}
               onChange={setSourceTz}
-              timezones={allTimezones}
+              placeholder="From timezone..."
               compact
             />
-            <TimezoneSelect
+            <TimezoneSearch
               value={targetTz}
               onChange={setTargetTz}
-              timezones={allTimezones}
+              placeholder="To timezone..."
               compact
             />
           </div>
@@ -201,10 +152,10 @@ export default function Converter({ compact = false }: ConverterProps) {
           From
         </label>
 
-        <TimezoneSelect
+        <TimezoneSearch
           value={sourceTz}
           onChange={setSourceTz}
-          timezones={allTimezones}
+          placeholder="Search by city, timezone or abbreviation..."
         />
 
         {/* Time input */}
@@ -244,10 +195,10 @@ export default function Converter({ compact = false }: ConverterProps) {
           To
         </label>
 
-        <TimezoneSelect
+        <TimezoneSearch
           value={targetTz}
           onChange={setTargetTz}
-          timezones={allTimezones}
+          placeholder="Search by city, timezone or abbreviation..."
         />
 
         <div className="mt-4 text-center">
@@ -261,7 +212,12 @@ export default function Converter({ compact = false }: ConverterProps) {
             {result.offsetDiff} from source
           </p>
           {result.isDSTTransition && (
-            <p className="mt-1 text-xs text-amber-400"><WarningIcon className="inline h-3.5 w-3.5" /> DST difference between zones</p>
+            <p className="mt-1 text-xs text-amber-400 cursor-help relative group/dst inline-block">
+              <WarningIcon className="inline h-3.5 w-3.5" /> DST difference between zones
+              <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-md bg-gray-900 border border-white/10 px-3 py-2 text-xs text-gray-200 leading-snug opacity-0 group-hover/dst:opacity-100 transition-opacity duration-0 z-50 shadow-lg">
+                The two time zones are currently observing different Daylight Saving Time (DST) rules. One zone has shifted its clocks while the other has not, so the offset between them is temporarily different from usual.
+              </span>
+            </p>
           )}
         </div>
       </div>
